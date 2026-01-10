@@ -13,7 +13,16 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # TODO: Install tf lint then run makefile command
+      - name: Read Terraform version
+        run: echo "TF_VERSION=$(cat .terraform-version)" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Run Formatter
+        run: make fmt-check
 
   lint:
     runs-on: ubuntu-latest
@@ -21,7 +30,14 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # TODO: Install tf lint then run makefile command
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.60.0
+          cache: true
+
+      - name: Run Linter
+        run: make lint
 
   sec-check:
     runs-on: ubuntu-latest
@@ -29,4 +45,10 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      # TODO: Install tf lint then run makefile command
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.4
+        with:
+          version: v0.68.2
+
+      - name: Run Trivy vulnerability scanner
+        run: make sec-check
