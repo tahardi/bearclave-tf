@@ -48,7 +48,7 @@ jobs:
       - name: Setup Trivy
         uses: aquasecurity/setup-trivy@v0.2.4
         with:
-          version: 0.68.2
+          version: v0.68.2
 
       - name: Run Trivy vulnerability scanner
         run: make sec-check
