@@ -15,5 +15,5 @@ output "security_group_id" {
 
 output "root_volume_id" {
   description = "The EBS volume ID of the root disk"
-  value       = aws_instance.bcl_nitro.root_block_device.volume_id
+  value       = aws_instance.bcl_nitro.root_block_device[0].volume_id
 }
