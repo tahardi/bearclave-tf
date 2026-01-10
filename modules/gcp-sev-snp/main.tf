@@ -58,7 +58,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
     google-logging-enabled        = "true"
     google-monitoring-enabled     = "true"
     ssh-keys                      = "root:${var.ssh_public_key}"
-    user-data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
+    user-data = base64encode(templatefile("${path.module}/cloud-init.yml", {
       container_image      = var.container_image
       container_privileged = true
     }))
