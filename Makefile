@@ -7,13 +7,16 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr: fmt lint sec-check
+pre-pr: fmt lint sec-check docs
 
 .PHONY: docs
-docs:
+docs: docs-aws-nitro
+
+.PHONY: docs-aws-nitro
+docs-aws-nitro:
 	@terraform-docs markdown table \
-		--config .terraform-docs.yml \
-		./modules/...
+		./modules/aws-nitro-enclaves \
+		--output-file README.md
 
 .PHONY: fmt
 fmt:
