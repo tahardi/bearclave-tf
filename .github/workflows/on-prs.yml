@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  fmt:
+  fmt-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -23,7 +23,7 @@ jobs:
 
       # TODO: Install tf lint then run makefile command
 
-  security:
+  sec-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
