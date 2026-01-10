@@ -1,5 +1,5 @@
 locals {
-  firewall_rules = "bcl_sev_snp"
+  firewall_rules = "bcl_tdx"
   network        = "default"
 }
 
@@ -17,17 +17,16 @@ provider "google" {
   zone    = var.zone
 }
 
-# Definition for our SEV-SNP enabled Compute instance
-resource "google_compute_instance" "bcl_sev_snp" {
-  name             = var.instance_name
-  machine_type     = var.machine_type
-  zone             = var.zone
-  project          = var.project_id
-  min_cpu_platform = "AMD Milan"
+# Definition for our TDX enabled Compute instance
+resource "google_compute_instance" "bcl_tdx" {
+  name         = var.instance_name
+  machine_type = var.machine_type
+  zone         = var.zone
+  project      = var.project_id
 
   confidential_instance_config {
     enable_confidential_compute = true
-    confidential_instance_type  = "SEV_SNP"
+    confidential_instance_type  = "TDX"
   }
 
   shielded_instance_config {
@@ -40,7 +39,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
   # trivy:ignore:AVD-GCP-0033
   boot_disk {
     initialize_params {
-      # Choose a SEV_SNP_CAPABLE VM image to use
+      # Choose a TDX_CAPABLE VM image to use
       image = "cos-stable-121-18867-294-76"
       size  = 16
     }

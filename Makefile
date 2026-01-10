@@ -10,7 +10,7 @@ SHELL := bash
 pre-pr: fmt lint sec-check docs
 
 .PHONY: docs
-docs: docs-aws-nitro docs-gcp-sev-snp
+docs: docs-aws-nitro docs-gcp-sev-snp docs-gcp-tdx
 
 .PHONY: docs-aws-nitro
 docs-aws-nitro:
@@ -22,6 +22,12 @@ docs-aws-nitro:
 docs-gcp-sev-snp:
 	@terraform-docs markdown table \
 		./modules/gcp-sev-snp \
+		--output-file README.md
+
+.PHONY: docs-gcp-tdx
+docs-gcp-tdx:
+	@terraform-docs markdown table \
+		./modules/gcp-tdx \
 		--output-file README.md
 
 .PHONY: fmt
