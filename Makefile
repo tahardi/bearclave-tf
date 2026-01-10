@@ -7,7 +7,7 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr: fmt lint security-scan docs
+pre-pr: fmt lint sec-check docs
 
 .PHONY: docs
 docs:
@@ -29,6 +29,6 @@ lint:
 lint-fix:
 	@tflint --recursive --fix
 
-.PHONY: security-scan
-security-scan:
+.PHONY: sec-check
+sec-check:
 	@tfsec .
