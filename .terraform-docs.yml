@@ -1,0 +1,78 @@
+# .terraform-docs.yml
+version: ">= 0.14"
+
+formatter: markdown table
+
+indent: 2
+
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - modules
+    - resources
+    - inputs
+    - outputs
+    - footer
+  hide: []
+  hide_all: false
+
+content: |-
+  # {{ .Name }}
+
+  {{ .Description }}
+
+  ## Usage
+
+  ```hcl
+  module "example" {
+    source = "git@github.com:tahardi/bearclave-tf.git//modules/{{ .Name }}"
+  {{- if .Module.RequiredInputs }}
+
+    # Required variables
+  {{- range .Module.RequiredInputs }}
+    {{ .Name }} = {{ .GetValue }}
+  {{- end }}
+  {{- end }}
+  {{- if .Module.OptionalInputs }}
+
+    # Optional variables
+  {{- range .Module.OptionalInputs }}
+    {{ .Name }} = {{ .GetValue | printf "%s" }}
+  {{- end }}
+  {{- end }}
+  }
+  ```
+
+  ## Requirements
+
+  {{ range .Module.Requirements }}
+  - {{ .Name }} (>= {{ .Version }})
+  {{- end }}
+
+  ## Providers
+
+  {{ range .Module.Providers }}
+  - {{ .Name }} (>= {{ .Version }})
+  {{- end }}
+
+  ## Resources
+
+  {{ range .Module.Resources }}
+  - [{{ .Type }}.{{ .Name }}](https://registry.terraform.io/providers/{{ .Provider }}/latest/docs/resources/{{ .Type }})
+  {{- end }}
+
+  ## Inputs
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: replace
+  template: |-
+    {{ .Content }}

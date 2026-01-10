@@ -1,0 +1,42 @@
+# .trivy.yaml
+# Trivy configuration for Terraform module security scanning
+
+# Global settings
+global:
+  # Exit with non-zero code if vulnerabilities are found
+  exit-code: 1
+
+  # Set minimum severity level to report
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+
+# Scanning configuration
+scan:
+  # Timeout for each scan (in seconds)
+  timeout: 300
+
+  # Number of parallel scanners
+  parallelism: 5
+
+# Misconfiguration scanner (IaC scanning)
+misconfiguration:
+  # Scan severity levels
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+
+# File patterns to include/exclude
+# By default, Terraform files are: *.tf, *.json (for Terraform JSON)
+skip-dirs:
+  - .terraform
+  - .git
+  - .github
+  - examples  # Optional: skip examples if you have them
+
+skip-files:
+  - .terraform.lock.hcl
+  - .terraform-docs.yml
+  - .trivy.yml

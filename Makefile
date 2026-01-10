@@ -7,11 +7,13 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr: fmt lint sec-check docs
+pre-pr: fmt lint sec-check
 
 .PHONY: docs
 docs:
-	@terraform-docs markdown table --output-file README.md ./modules/...
+	@terraform-docs markdown table \
+		--config .terraform-docs.yml \
+		./modules/...
 
 .PHONY: fmt
 fmt:
@@ -21,14 +23,28 @@ fmt:
 fmt-check:
 	@terraform fmt -recursive -check
 
+.PHONY: lint-init
+lint-init:
+	@tflint --config .tflint.hcl --init
+
 .PHONY: lint
-lint:
-	@tflint --recursive
+lint: lint-init
+	@tflint --config .tflint.hcl
 
 .PHONY: lint-fix
-lint-fix:
-	@tflint --recursive --fix
+lint-fix: lint-init
+	@tflint --config .tflint.hcl --fix
 
 .PHONY: sec-check
 sec-check:
-	@tfsec .
+	@trivy config \
+		--config .trivy.yml \
+		--format table \
+		.
+
+.PHONY: sec-check-json
+sec-check-json:
+	@trivy config \
+		--config .trivy.yml \
+		--format json \
+		.
