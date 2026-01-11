@@ -61,6 +61,11 @@ resource "aws_instance" "bcl_nitro" {
     instance_metadata_tags      = "enabled"
   }
 
+  # This will run our setup script the first time our instance boots. Depending
+  # on the complexity of the setup, you may want to use something like Ansible
+  # Playbook instead. Since ours is simple and a one-off, this will do just fine.
+  user_data = file("${path.module}/setup.sh")
+
   # Make sure the key pair actually exists
   depends_on = [data.aws_key_pair.this]
 }
