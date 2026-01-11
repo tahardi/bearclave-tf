@@ -7,7 +7,7 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr: fmt lint sec-check docs
+pre-pr: fmt lint sec-check-quiet docs
 
 .PHONY: docs
 docs: docs-aws-nitro docs-gcp-sev-snp docs-gcp-tdx
@@ -54,12 +54,10 @@ lint-fix: lint-init
 sec-check:
 	@trivy config \
 		--config .trivy.yml \
-		--format table \
 		.
 
-.PHONY: sec-check-json
-sec-check-json:
+.PHONY: sec-check-quiet
+sec-check-quiet:
 	@trivy config \
 		--config .trivy.yml \
-		--format json \
-		.
+		. > /dev/null 2>&1
