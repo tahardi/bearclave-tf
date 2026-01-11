@@ -5,9 +5,8 @@ variable "aws_region" {
 }
 
 variable "instance_name" {
-  description = "The name of the EC2 instance"
+  description = "The name of the EC2 instance (must be unique)."
   type        = string
-  default     = "bearclave"
 }
 
 variable "key_pair_name" {

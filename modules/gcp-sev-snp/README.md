@@ -30,7 +30,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_container_image"></a> [container\_image](#input\_container\_image) | Container image URI from Artifact Registry | `string` | `"hello-world"` | no |
-| <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | Name of the compute instance | `string` | `"bearclave-sev-snp"` | no |
+| <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | Name of the compute instance (must be unique). | `string` | n/a | yes |
 | <a name="input_labels"></a> [labels](#input\_labels) | Labels to apply to the instance | `map(string)` | `{}` | no |
 | <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type (e.g., n2d-standard-8) | `string` | `"n2d-standard-8"` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | GCP Project ID | `string` | `"bearclave"` | no |

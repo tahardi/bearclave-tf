@@ -22,9 +22,8 @@ variable "ssh_public_key" {
 }
 
 variable "instance_name" {
-  description = "Name of the compute instance"
+  description = "Name of the compute instance (must be unique)."
   type        = string
-  default     = "bearclave-sev-snp"
 }
 
 variable "machine_type" {

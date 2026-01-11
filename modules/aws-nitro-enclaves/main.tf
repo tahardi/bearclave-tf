@@ -21,6 +21,8 @@ data "aws_key_pair" "this" {
   include_public_key = true
 }
 
+# AWS instance resources don't have an explicit name field. Instead, you add
+# a "Name" tag and the AWS console will use that as the display name.
 locals {
   common_tags = merge(
     {
@@ -64,8 +66,9 @@ resource "aws_instance" "bcl_nitro" {
 }
 
 # Create a security group that defines networking rules for the EC2 instance.
+# Use name_prefix so we don't end up with naming collisions.
 resource "aws_security_group" "bcl_nitro" {
-  name        = "${var.instance_name}-sg"
+  name_prefix = "${var.instance_name}-sg-"
   description = "Security group for Bearclave Nitro Enclave enabled instances"
 
   tags = local.common_tags
