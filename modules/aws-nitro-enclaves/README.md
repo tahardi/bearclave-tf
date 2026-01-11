@@ -35,7 +35,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | The AMI ID to use. Defaults to Amazon Linux 2023 in us-east-2. | `string` | `"ami-06f1fc9ae5ae7f31e"` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy resources in | `string` | `"us-east-2"` | no |
-| <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | The name of the EC2 instance | `string` | `"bearclave"` | no |
+| <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | The name of the EC2 instance (must be unique). | `string` | n/a | yes |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | The EC2 instance type. Must be Nitro-capable. Common options: c5.xlarge, c5a.xlarge, m5.large, m5.xlarge | `string` | `"c5.xlarge"` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | The name of an existing SSH keypair in AWS. Note that this must exist in the same region as the EC2 instance. | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags to apply to all resources | `map(string)` | `{}` | no |
