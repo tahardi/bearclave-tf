@@ -1,5 +1,5 @@
 locals {
-  firewall_rules = "bcl_sev_snp"
+  firewall_rules = "bcl-sev-snp"
   network        = "default"
 }
 
