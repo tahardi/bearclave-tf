@@ -94,7 +94,6 @@ resource "google_compute_instance" "bcl_sev_snp" {
   scheduling {
     automatic_restart   = true
     on_host_maintenance = "TERMINATE"
-    node_affinities     = []
   }
 
   # Labels
