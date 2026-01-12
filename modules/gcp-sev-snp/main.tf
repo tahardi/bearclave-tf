@@ -41,7 +41,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
   boot_disk {
     initialize_params {
       # Choose a SEV_SNP_CAPABLE VM image to use
-      image = "cos-stable-121-18867-294-76"
+      image = "projects/cos-cloud/global/images/cos-stable-121-18867-294-76"
       size  = 16
     }
   }
