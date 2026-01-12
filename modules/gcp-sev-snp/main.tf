@@ -61,6 +61,18 @@ resource "google_compute_instance" "bcl_sev_snp" {
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
+    gce-container-declaration = jsonencode({
+      spec = {
+        containers = [
+          {
+            image = var.container_image
+            securityContext = {
+              privileged = false
+            }
+          }
+        ]
+      }
+    })
   }
 
   # Specify the network to use. Our firewall rules should also be attached to
