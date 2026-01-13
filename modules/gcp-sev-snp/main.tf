@@ -67,7 +67,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
           {
             image = var.container_image
             securityContext = {
-              privileged = false
+              privileged = true
             }
           }
         ]

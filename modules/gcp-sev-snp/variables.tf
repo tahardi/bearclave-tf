@@ -30,7 +30,7 @@ variable "instance_name" {
 variable "machine_type" {
   description = "Machine type (e.g., n2d-standard-8)"
   type        = string
-  default     = "n2d-standard-8"
+  default     = "n2d-standard-2"
 }
 
 variable "container_image" {
