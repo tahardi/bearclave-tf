@@ -13,6 +13,7 @@ variable "zone" {
 variable "service_account_email" {
   description = "Email of the Service Account you wish to attach to the VM"
   type        = string
+  sensitive   = true
 }
 
 variable "ssh_public_key" {
@@ -29,7 +30,7 @@ variable "instance_name" {
 variable "machine_type" {
   description = "Machine type (e.g., n2d-standard-8)"
   type        = string
-  default     = "n2d-standard-8"
+  default     = "n2d-standard-2"
 }
 
 variable "container_image" {

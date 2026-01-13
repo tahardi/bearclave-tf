@@ -1,5 +1,5 @@
 locals {
-  firewall_rules = "bcl_sev_snp"
+  firewall_rules = "bcl-sev-snp"
   network        = "default"
 }
 
@@ -17,6 +17,12 @@ provider "google" {
   zone    = var.zone
 }
 
+resource "google_project_iam_member" "artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${var.service_account_email}"
+}
+
 # Definition for our SEV-SNP enabled Compute instance
 resource "google_compute_instance" "bcl_sev_snp" {
   name             = var.instance_name
@@ -24,6 +30,11 @@ resource "google_compute_instance" "bcl_sev_snp" {
   zone             = var.zone
   project          = var.project_id
   min_cpu_platform = "AMD Milan"
+
+  service_account {
+    email  = var.service_account_email
+    scopes = ["cloud-platform"]
+  }
 
   confidential_instance_config {
     enable_confidential_compute = true
@@ -36,38 +47,82 @@ resource "google_compute_instance" "bcl_sev_snp" {
     enable_integrity_monitoring = true
   }
 
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "TERMINATE"
+  }
+
   # (LOW): Instance disk encryption does not use a customer managed key.
   # trivy:ignore:AVD-GCP-0033
   boot_disk {
     initialize_params {
       # Choose a SEV_SNP_CAPABLE VM image to use
-      image = "cos-stable-121-18867-294-76"
+      image = "projects/cos-cloud/global/images/cos-stable-121-18867-294-76"
       size  = 16
     }
   }
 
-
+  # Confidential VM Metadata variables:
+  # https://docs.cloud.google.com/confidential-computing/confidential-space/docs/deploy-workloads#metadata-variables
+  #
   # Depends on how you use the module. You could just as easily pass a different
   # SSH key for every instance you create. Not worth enforcing via the module.
   #
   # (MEDIUM): Instance allows use of project-level SSH keys.
   # trivy:ignore:AVD-GCP-0030
   metadata = {
-    enable-oslogin                = "TRUE"
+    enable-oslogin                = "true"
     google-compute-default-scopes = "cloud-platform"
-    google-logging-enabled        = "true"
-    google-monitoring-enabled     = "true"
-    ssh-keys                      = "root:${var.ssh_public_key}"
+
+    # Enable/Disable monitoring. This allows you to view stdout/stderr from
+    # your applications running within the confidential VM
+    google-logging-enabled     = "true"
+    tee-container-log-redirect = "true"
+
+    # This is used to collect metrics (e.g., CPU usage)
+    google-monitoring-enabled = "true"
+
+    # Set whitelist of SSH keys allowed to SSH into instance
+    ssh-keys = "root:${var.ssh_public_key}"
+
+    # This is used to run our setup script the first time the instance is
+    # booted. Namely, we set the logger to Google logger and mount sev-guest
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
+    gce-container-declaration = jsonencode({
+      spec = {
+        containers = [
+          {
+            image = var.container_image
+            # Container needs privileged perms to access `/dev/sev-guest`
+            securityContext = {
+              privileged = true
+            }
+            volumeMounts = [
+              {
+                name      = "sev-guest"
+                mountPath = "/dev/sev-guest"
+              }
+            ]
+          }
+        ]
+        volumes = [
+          {
+            name = "sev-guest"
+            hostPath = {
+              path = "/dev/sev-guest"
+            }
+          }
+        ]
+      }
+    })
   }
 
   # Specify the network to use. Our firewall rules should also be attached to
   # this network.
   network_interface {
     network = local.network
-
 
     # Maybe I'll look into Cloud IAP or some static IP solution one day, but for
     # now I need to access my TEE applications from my home network.
@@ -81,21 +136,9 @@ resource "google_compute_instance" "bcl_sev_snp" {
     }
   }
 
-  service_account {
-    email  = var.service_account_email
-    scopes = ["cloud-platform"]
-  }
-
   # Attach the firewall_rules tag so that the instance inherits our firewall
   # rules defined below
   tags = [local.firewall_rules]
-
-  # Scheduling configuration
-  scheduling {
-    automatic_restart   = true
-    on_host_maintenance = "TERMINATE"
-    node_affinities     = []
-  }
 
   # Labels
   labels = merge(
@@ -145,8 +188,6 @@ resource "google_compute_firewall" "https" {
     ports    = ["443", "8443"]
   }
 }
-
-
 
 # Allow all egress traffic (outbound)
 #
