@@ -24,6 +24,7 @@ No modules.
 | [google_compute_firewall.https](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
 | [google_compute_firewall.ssh](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
 | [google_compute_instance.bcl_sev_snp](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance) | resource |
+| [google_project_iam_member.artifact_registry_reader](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/project_iam_member) | resource |
 
 ## Inputs
 
@@ -32,7 +33,7 @@ No modules.
 | <a name="input_container_image"></a> [container\_image](#input\_container\_image) | Container image URI from Artifact Registry | `string` | `"hello-world"` | no |
 | <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | Name of the compute instance (must be unique). | `string` | n/a | yes |
 | <a name="input_labels"></a> [labels](#input\_labels) | Labels to apply to the instance | `map(string)` | `{}` | no |
-| <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type (e.g., n2d-standard-8) | `string` | `"n2d-standard-8"` | no |
+| <a name="input_machine_type"></a> [machine\_type](#input\_machine\_type) | Machine type (e.g., n2d-standard-8) | `string` | `"n2d-standard-2"` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | GCP Project ID | `string` | `"bearclave"` | no |
 | <a name="input_service_account_email"></a> [service\_account\_email](#input\_service\_account\_email) | Email of the Service Account you wish to attach to the VM | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public key for accessing instance | `string` | n/a | yes |
