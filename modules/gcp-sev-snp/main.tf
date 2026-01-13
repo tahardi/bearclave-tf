@@ -57,7 +57,9 @@ resource "google_compute_instance" "bcl_sev_snp" {
     }
   }
 
-
+  # Confidential VM Metadata variables:
+  # https://docs.cloud.google.com/confidential-computing/confidential-space/docs/deploy-workloads#metadata-variables
+  #
   # Depends on how you use the module. You could just as easily pass a different
   # SSH key for every instance you create. Not worth enforcing via the module.
   #
@@ -66,9 +68,20 @@ resource "google_compute_instance" "bcl_sev_snp" {
   metadata = {
     enable-oslogin                = "TRUE"
     google-compute-default-scopes = "cloud-platform"
-    google-logging-enabled        = "true"
-    google-monitoring-enabled     = "true"
-    ssh-keys                      = "root:${var.ssh_public_key}"
+
+    # Enable/Disable monitoring. This allows you to view stdout/stderr from
+    # your applications running within the confidential VM
+    google-logging-enabled     = "true"
+    tee-container-log-redirect = "true"
+
+    # This is used to collect metrics (e.g., CPU usage)
+    google-monitoring-enabled = "true"
+
+    # Set whitelist of SSH keys allowed to SSH into instance
+    ssh-keys = "root:${var.ssh_public_key}"
+
+    # This is used to run our setup script the first time the instance is
+    # booted. Noteably, we use this to mount /dev/sev-guest and start our VM
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
@@ -82,8 +95,8 @@ resource "google_compute_instance" "bcl_sev_snp" {
               privileged = true
             }
             # Add logging configuration
-            stdout = true
-            stderr = true
+            # stdout = true
+            # stderr = true
           }
         ]
       }
@@ -94,7 +107,6 @@ resource "google_compute_instance" "bcl_sev_snp" {
   # this network.
   network_interface {
     network = local.network
-
 
     # Maybe I'll look into Cloud IAP or some static IP solution one day, but for
     # now I need to access my TEE applications from my home network.
@@ -160,8 +172,6 @@ resource "google_compute_firewall" "https" {
     ports    = ["443", "8443"]
   }
 }
-
-
 
 # Allow all egress traffic (outbound)
 #
