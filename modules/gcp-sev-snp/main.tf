@@ -65,7 +65,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
   # (MEDIUM): Instance allows use of project-level SSH keys.
   # trivy:ignore:AVD-GCP-0030
   metadata = {
-    enable-oslogin                = "TRUE"
+    enable-oslogin                = "true"
     google-compute-default-scopes = "cloud-platform"
 
     # Enable/Disable monitoring. This allows you to view stdout/stderr from
@@ -84,22 +84,22 @@ resource "google_compute_instance" "bcl_sev_snp" {
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
-    gce-container-declaration = jsonencode({
-      spec = {
-        containers = [
-          {
-            image = var.container_image
-            # Container needs privileged perms to access `/dev/sev-guest`
-            securityContext = {
-              privileged = true
-            }
-            # Enable/Disable output for logging
-            stdout = true
-            stderr = true
-          }
-        ]
-      }
-    })
+    # gce-container-declaration = jsonencode({
+    #   spec = {
+    #     containers = [
+    #       {
+    #         image = var.container_image
+    #         # Container needs privileged perms to access `/dev/sev-guest`
+    #         securityContext = {
+    #           privileged = true
+    #         }
+    #         # Enable/Disable output for logging
+    #         stdout = true
+    #         stderr = true
+    #       }
+    #     ]
+    #   }
+    # })
   }
 
   # Specify the network to use. Our firewall rules should also be attached to

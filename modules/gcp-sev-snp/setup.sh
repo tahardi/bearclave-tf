@@ -5,10 +5,9 @@ set -e
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
 {
-  "log-driver": "json-file",
+  "log-driver": "gcplogs",
   "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
+    "labels": "container=${container_image}"
   }
 }
 EOF
