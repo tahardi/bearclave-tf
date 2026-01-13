@@ -41,7 +41,6 @@ resource "google_compute_instance" "bcl_sev_snp" {
     enable_integrity_monitoring = true
   }
 
-  # Scheduling configuration
   scheduling {
     automatic_restart   = true
     on_host_maintenance = "TERMINATE"
@@ -94,9 +93,9 @@ resource "google_compute_instance" "bcl_sev_snp" {
             securityContext = {
               privileged = true
             }
-            # Add logging configuration
-            # stdout = true
-            # stderr = true
+            # Enable/Disable output for logging
+            stdout = true
+            stderr = true
           }
         ]
       }
