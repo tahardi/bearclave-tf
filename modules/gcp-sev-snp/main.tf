@@ -17,6 +17,12 @@ provider "google" {
   zone    = var.zone
 }
 
+resource "google_project_iam_member" "artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${var.service_account_email}"
+}
+
 # Definition for our SEV-SNP enabled Compute instance
 resource "google_compute_instance" "bcl_sev_snp" {
   name             = var.instance_name
