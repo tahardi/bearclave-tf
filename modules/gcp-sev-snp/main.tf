@@ -90,22 +90,36 @@ resource "google_compute_instance" "bcl_sev_snp" {
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
-    # gce-container-declaration = jsonencode({
-    #   spec = {
-    #     containers = [
-    #       {
-    #         image = var.container_image
-    #         # Container needs privileged perms to access `/dev/sev-guest`
-    #         securityContext = {
-    #           privileged = true
-    #         }
-    #         # Enable/Disable output for logging
-    #         stdout = true
-    #         stderr = true
-    #       }
-    #     ]
-    #   }
-    # })
+    gce-container-declaration = jsonencode({
+      spec = {
+        containers = [
+          {
+            image = var.container_image
+            # Container needs privileged perms to access `/dev/sev-guest`
+            securityContext = {
+              privileged = true
+            }
+            volumeMounts = [
+              {
+                name      = "sev-guest"
+                mountPath = "/dev/sev-guest"
+              }
+            ]
+            # Enable/Disable output for logging
+            # stdout = true
+            # stderr = true
+          }
+        ]
+        volumes = [
+          {
+            name = "sev-guest"
+            hostPath = {
+              path = "/dev/sev-guest"
+            }
+          }
+        ]
+      }
+    })
   }
 
   # Specify the network to use. Our firewall rules should also be attached to
