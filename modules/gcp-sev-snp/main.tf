@@ -86,7 +86,7 @@ resource "google_compute_instance" "bcl_sev_snp" {
     ssh-keys = "root:${var.ssh_public_key}"
 
     # This is used to run our setup script the first time the instance is
-    # booted. Noteably, we use this to mount /dev/sev-guest and start our VM
+    # booted. Namely, we set the logger to Google logger and mount sev-guest
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
@@ -105,9 +105,6 @@ resource "google_compute_instance" "bcl_sev_snp" {
                 mountPath = "/dev/sev-guest"
               }
             ]
-            # Enable/Disable output for logging
-            # stdout = true
-            # stderr = true
           }
         ]
         volumes = [
