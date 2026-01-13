@@ -18,13 +18,15 @@ sudo systemctl restart docker
 # Ensure SEV device is mounted
 sudo mount --bind /dev/sev-guest /dev/sev-guest
 
+# Enable IP forwarding from host to container
 sudo sysctl -w net.ipv4.ip_forward=1
 
-# Pull and run container image. Make sure to mount SEV device and network ports
+# Pull and run container image. Make sure to mount SEV device and expose the
+# host network to the container.
 sudo docker pull ${container_image}
 sudo docker run -d \
   --privileged \
   --name bearclave \
-  -- net host \
+  --net host \
   -v /dev/sev-guest:/dev/sev-guest \
   ${container_image}
