@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Configure Docker daemon for better logging
+# Configure Docker daemon to log to Google Cloud Logging
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
 {
@@ -18,10 +18,14 @@ sudo systemctl restart docker
 # Ensure SEV device is mounted
 sudo mount --bind /dev/sev-guest /dev/sev-guest
 
-# Pull and run your container with mounted volumes
+# Pull and run container image. Make sure to mount SEV device and network ports
 sudo docker pull ${container_image}
 sudo docker run -d \
   --privileged \
   --name bearclave \
   -v /dev/sev-guest:/dev/sev-guest \
+  -p 80:80 \
+  -p 8080:8080 \
+  -p 443:443 \
+  -p 8443:8443 \
   ${container_image}
