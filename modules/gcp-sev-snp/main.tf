@@ -25,6 +25,11 @@ resource "google_compute_instance" "bcl_sev_snp" {
   project          = var.project_id
   min_cpu_platform = "AMD Milan"
 
+  service_account {
+    email  = var.service_account_email
+    scopes = ["cloud-platform"]
+  }
+
   confidential_instance_config {
     enable_confidential_compute = true
     confidential_instance_type  = "SEV_SNP"
@@ -34,6 +39,12 @@ resource "google_compute_instance" "bcl_sev_snp" {
     enable_secure_boot          = true
     enable_vtpm                 = true
     enable_integrity_monitoring = true
+  }
+
+  # Scheduling configuration
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "TERMINATE"
   }
 
   # (LOW): Instance disk encryption does not use a customer managed key.
@@ -66,9 +77,13 @@ resource "google_compute_instance" "bcl_sev_snp" {
         containers = [
           {
             image = var.container_image
+            # Container needs privileged perms to access `/dev/sev-guest`
             securityContext = {
               privileged = true
             }
+            # Add logging configuration
+            stdout = true
+            stderr = true
           }
         ]
       }
@@ -93,20 +108,9 @@ resource "google_compute_instance" "bcl_sev_snp" {
     }
   }
 
-  service_account {
-    email  = var.service_account_email
-    scopes = ["cloud-platform"]
-  }
-
   # Attach the firewall_rules tag so that the instance inherits our firewall
   # rules defined below
   tags = [local.firewall_rules]
-
-  # Scheduling configuration
-  scheduling {
-    automatic_restart   = true
-    on_host_maintenance = "TERMINATE"
-  }
 
   # Labels
   labels = merge(
