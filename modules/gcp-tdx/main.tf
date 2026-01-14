@@ -104,9 +104,12 @@ resource "google_compute_instance" "bcl_tdx" {
 
     # This is used to run our setup script the first time the instance is
     # booted. Namely, we set the logger to Google logger and mount sev-guest
-    user-data = base64encode(templatefile("${path.module}/setup.sh", {
+    # user-data = base64encode(templatefile("${path.module}/setup.sh", {
+    #   container_image = var.container_image
+    # }))
+    startup-script = templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
-    }))
+    })
 
     # Note: Deploying containers to confidential VMs with gce-container-declaration
     # is deprecated and will be removed in 2027. At some point, you will need
