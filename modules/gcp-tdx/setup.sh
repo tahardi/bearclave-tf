@@ -1,51 +1,9 @@
 #!/bin/bash
 set -e
 
-# Log all output for debugging
-exec 1> >(logger -s -t $(basename $0))
-exec 2>&1
-
 echo "=== Starting TDX setup script ==="
 
-# Download Ops Agent installer
-echo "Downloading Ops Agent installer..."
-if ! curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh; then
-  echo "ERROR: Failed to download Ops Agent installer"
-  # Don't exit - continue with other setup
-fi
-
-# Install Ops Agent
-if [ -f add-google-cloud-ops-agent-repo.sh ]; then
-  echo "Running Ops Agent installer..."
-  if ! sudo bash add-google-cloud-ops-agent-repo.sh --also-install; then
-    echo "WARNING: Ops Agent installation failed (this is okay if not available on this image)"
-  fi
-else
-  echo "WARNING: Ops Agent installer script not found"
-fi
-
-# Configure Ops Agent if it exists
-if sudo systemctl list-unit-files 2>/dev/null | grep -q google-cloud-ops-agent; then
-  echo "Configuring Ops Agent..."
-  sudo mkdir -p /etc/google-cloud-ops-agent
-  sudo tee /etc/google-cloud-ops-agent/config.yaml > /dev/null << 'EOF'
-logging:
-  receivers:
-    docker_logs:
-      type: files
-      include_paths:
-      - /var/lib/docker/containers/*/*.log
-  service:
-    pipelines:
-      default_pipeline:
-        receivers: [docker_logs]
-EOF
-  sudo systemctl restart google-cloud-ops-agent || echo "WARNING: Failed to restart Ops Agent"
-else
-  echo "WARNING: google-cloud-ops-agent service not found, skipping Ops Agent config"
-fi
-
-# Configure Docker
+# Configure Docker to use json-file driver with reasonable limits
 echo "Configuring Docker..."
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
@@ -53,13 +11,37 @@ sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
-    "max-file": "3"
+    "max-file": "3",
+    "labels": "service=bearclave"
   }
 }
 EOF
 
 sudo systemctl restart docker
-echo "Docker configured"
+echo "Docker restarted with json-file driver"
+
+# Configure Fluent Bit to ship Docker logs to Cloud Logging
+echo "Configuring Fluent Bit..."
+sudo tee /etc/fluent-bit/config.d/docker.conf > /dev/null << 'EOF'
+[INPUT]
+    Name tail
+    Path /var/lib/docker/containers/*/*.log
+    Tag docker.*
+    Parser docker
+    DB /var/lib/fluent-bit/state-docker.db
+    Mem_Buf_Limit 5MB
+    Skip_Long_Lines On
+
+[OUTPUT]
+    Name stackdriver
+    Match *
+    resource k8s_container
+    k8s_cluster_name bearclave-tdx
+    k8s_cluster_location us-central1-a
+EOF
+
+# Restart Fluent Bit to pick up the new config
+sudo systemctl restart fluent-bit || echo "Fluent Bit not available, skipping"
 
 # Ensure TDX device and kernel config are mounted
 echo "Mounting TDX devices..."
