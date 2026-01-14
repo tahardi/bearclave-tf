@@ -1,8 +1,3 @@
-locals {
-  firewall_rules = "bcl-sev-snp"
-  network        = "default"
-}
-
 terraform {
   required_version = ">= 1.14.0, < 2.0.0"
   required_providers {
@@ -13,15 +8,14 @@ terraform {
   }
 }
 
+locals {
+  firewall_rules = "bcl-sev-snp"
+  network        = "default"
+}
+
 provider "google" {
   project = var.project_id
   zone    = var.zone
-}
-
-resource "google_project_iam_member" "artifact_registry_reader" {
-  project = var.project_id
-  role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:${var.service_account_email}"
 }
 
 # Definition for our SEV-SNP enabled Compute instance
