@@ -13,6 +13,7 @@ variable "zone" {
 variable "service_account_email" {
   description = "Email of the Service Account you wish to attach to the VM"
   type        = string
+  sensitive   = true
 }
 
 variable "ssh_public_key" {
