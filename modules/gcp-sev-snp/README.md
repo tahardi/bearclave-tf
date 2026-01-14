@@ -25,7 +25,6 @@ No modules.
 | [google_compute_firewall.https](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
 | [google_compute_firewall.ssh](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_firewall) | resource |
 | [google_compute_instance.bcl_sev_snp](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance) | resource |
-| [google_project_iam_member.artifact_registry_reader](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/project_iam_member) | resource |
 
 ## Inputs
 

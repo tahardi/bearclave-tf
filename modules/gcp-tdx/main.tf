@@ -1,8 +1,3 @@
-locals {
-  firewall_rules = "bcl_tdx"
-  network        = "default"
-}
-
 terraform {
   required_version = ">= 1.14.0, < 2.0.0"
   required_providers {
@@ -11,6 +6,11 @@ terraform {
       version = "~> 7.15"
     }
   }
+}
+
+locals {
+  firewall_rules = "bcl-tdx"
+  network        = "default"
 }
 
 provider "google" {
@@ -24,6 +24,17 @@ resource "google_compute_instance" "bcl_tdx" {
   machine_type = var.machine_type
   zone         = var.zone
   project      = var.project_id
+  depends_on   = []
+  labels       = merge({ "tee-type" = "tdx" }, var.labels)
+
+  # Attach the firewall_rules tag so that the instance inherits our firewall
+  # rules defined below
+  tags = [local.firewall_rules]
+
+  service_account {
+    email  = var.service_account_email
+    scopes = ["cloud-platform"]
+  }
 
   confidential_instance_config {
     enable_confidential_compute = true
@@ -36,38 +47,15 @@ resource "google_compute_instance" "bcl_tdx" {
     enable_integrity_monitoring = true
   }
 
-  # (LOW): Instance disk encryption does not use a customer managed key.
-  # trivy:ignore:AVD-GCP-0033
-  boot_disk {
-    initialize_params {
-      # Choose a TDX_CAPABLE VM image to use
-      image = "cos-stable-121-18867-294-76"
-      size  = 16
-    }
-  }
-
-
-  # Depends on how you use the module. You could just as easily pass a different
-  # SSH key for every instance you create. Not worth enforcing via the module.
-  #
-  # (MEDIUM): Instance allows use of project-level SSH keys.
-  # trivy:ignore:AVD-GCP-0030
-  metadata = {
-    enable-oslogin                = "TRUE"
-    google-compute-default-scopes = "cloud-platform"
-    google-logging-enabled        = "true"
-    google-monitoring-enabled     = "true"
-    ssh-keys                      = "root:${var.ssh_public_key}"
-    user-data = base64encode(templatefile("${path.module}/setup.sh", {
-      container_image = var.container_image
-    }))
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "TERMINATE"
   }
 
   # Specify the network to use. Our firewall rules should also be attached to
   # this network.
   network_interface {
     network = local.network
-
 
     # Maybe I'll look into Cloud IAP or some static IP solution one day, but for
     # now I need to access my TEE applications from my home network.
@@ -81,30 +69,88 @@ resource "google_compute_instance" "bcl_tdx" {
     }
   }
 
-  service_account {
-    email  = var.service_account_email
-    scopes = ["cloud-platform"]
+  # (LOW): Instance disk encryption does not use a customer managed key.
+  # trivy:ignore:AVD-GCP-0033
+  boot_disk {
+    initialize_params {
+      # Choose a TDX_CAPABLE VM image to use
+      image = "projects/cos-cloud/global/images/cos-stable-121-18867-294-76"
+      size  = 16
+    }
   }
 
-  # Attach the firewall_rules tag so that the instance inherits our firewall
-  # rules defined below
-  tags = [local.firewall_rules]
+  # Confidential VM Metadata variables:
+  # https://docs.cloud.google.com/confidential-computing/confidential-space/docs/deploy-workloads#metadata-variables
+  #
+  # Depends on how you use the module. You could just as easily pass a different
+  # SSH key for every instance you create. Not worth enforcing via the module.
+  #
+  # (MEDIUM): Instance allows use of project-level SSH keys.
+  # trivy:ignore:AVD-GCP-0030
+  metadata = {
+    enable-oslogin                = "true"
+    google-compute-default-scopes = "cloud-platform"
 
-  # Scheduling configuration
-  scheduling {
-    automatic_restart   = true
-    on_host_maintenance = "TERMINATE"
-    node_affinities     = []
+    # Enable/Disable monitoring. This allows you to view stdout/stderr from
+    # your applications running within the confidential VM
+    google-logging-enabled     = "true"
+    tee-container-log-redirect = "true"
+
+    # This is used to collect metrics (e.g., CPU usage)
+    google-monitoring-enabled = "true"
+
+    # Set whitelist of SSH keys allowed to SSH into instance
+    ssh-keys = "root:${var.ssh_public_key}"
+
+    # This is used to run our setup script the first time the instance is
+    # booted. Namely, we configure the logger and mount necessary drivers
+    #
+    # https://docs.cloud.google.com/compute/docs/instances/startup-scripts
+    startup-script = templatefile("${path.module}/setup.sh", {
+      container_image = var.container_image
+    })
+
+    # Note: Deploying containers to confidential VMs with gce-container-declaration
+    # is deprecated and will be removed in 2027. At some point, you will need
+    # to figure out how to deploy the container via the setup.sh script.
+    gce-container-declaration = jsonencode({
+      spec = {
+        containers = [
+          {
+            image = var.container_image
+            # Container needs privileged perms to access `/dev/tdx-guest` and /sys/kernel/config
+            securityContext = {
+              privileged = true
+            }
+            volumeMounts = [
+              {
+                name      = "tdx-guest"
+                mountPath = "/dev/tdx-guest"
+              },
+              {
+                name      = "config"
+                mountPath = "/sys/kernel/config"
+              }
+            ]
+          }
+        ]
+        volumes = [
+          {
+            name = "tdx-guest"
+            hostPath = {
+              path = "/dev/tdx-guest"
+            }
+          },
+          {
+            name = "config"
+            hostPath = {
+              path = "/sys/kernel/config"
+            }
+          }
+        ]
+      }
+    })
   }
-
-  # Labels
-  labels = merge(
-    {
-      "tee-type" = "sev-snp"
-    },
-    var.labels
-  )
-  depends_on = []
 }
 
 # Allow ingress from anywhere on port 22 (typically used for SSH)
