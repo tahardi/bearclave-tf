@@ -103,10 +103,9 @@ resource "google_compute_instance" "bcl_tdx" {
     ssh-keys = "root:${var.ssh_public_key}"
 
     # This is used to run our setup script the first time the instance is
-    # booted. Namely, we set the logger to Google logger and mount sev-guest
-    # user-data = base64encode(templatefile("${path.module}/setup.sh", {
-    #   container_image = var.container_image
-    # }))
+    # booted. Namely, we configure the logger and mount necessary drivers
+    #
+    # https://docs.cloud.google.com/compute/docs/instances/startup-scripts
     startup-script = templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     })
