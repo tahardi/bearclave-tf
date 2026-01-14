@@ -9,6 +9,12 @@ terraform {
   }
 }
 
+locals {
+  # AWS instance resources don't have an explicit name field. Instead, you add
+  # a "Name" tag and the AWS console will use that as the display name.
+  common_tags = merge({ Name = var.instance_name }, var.tags)
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -22,22 +28,15 @@ data "aws_key_pair" "this" {
   include_public_key = true
 }
 
-# AWS instance resources don't have an explicit name field. Instead, you add
-# a "Name" tag and the AWS console will use that as the display name.
-locals {
-  common_tags = merge(
-    {
-      Name = var.instance_name
-    },
-    var.tags
-  )
-}
-
 resource "aws_instance" "bcl_nitro" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
   key_name               = var.key_pair_name
   vpc_security_group_ids = [aws_security_group.bcl_nitro.id]
+  tags                   = local.common_tags
+
+  # Make sure the key pair actually exists
+  depends_on = [data.aws_key_pair.this]
 
   # General purpose SSD w/16GB storage
   root_block_device {
@@ -50,8 +49,6 @@ resource "aws_instance" "bcl_nitro" {
   enclave_options {
     enabled = true
   }
-
-  tags = local.common_tags
 
   # Enable the metadata service, but require tokens and only allow code running
   # on the instance to query the metadata service (hop limit = 1)
@@ -66,9 +63,6 @@ resource "aws_instance" "bcl_nitro" {
   # on the complexity of the setup, you may want to use something like Ansible
   # Playbook instead. Since ours is simple and a one-off, this will do just fine.
   user_data = file("${path.module}/setup.sh")
-
-  # Make sure the key pair actually exists
-  depends_on = [data.aws_key_pair.this]
 }
 
 # Create a security group that defines networking rules for the EC2 instance.

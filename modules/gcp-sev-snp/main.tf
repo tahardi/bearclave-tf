@@ -25,6 +25,12 @@ resource "google_compute_instance" "bcl_sev_snp" {
   zone             = var.zone
   project          = var.project_id
   min_cpu_platform = "AMD Milan"
+  depends_on       = []
+  labels           = merge({ "tee-type" = "sev-snp" }, var.labels)
+
+  # Attach the firewall_rules tag so that the instance inherits our firewall
+  # rules defined below
+  tags = [local.firewall_rules]
 
   service_account {
     email  = var.service_account_email
@@ -45,6 +51,23 @@ resource "google_compute_instance" "bcl_sev_snp" {
   scheduling {
     automatic_restart   = true
     on_host_maintenance = "TERMINATE"
+  }
+
+  # Specify the network to use. Our firewall rules should also be attached to
+  # this network.
+  network_interface {
+    network = local.network
+
+    # Maybe I'll look into Cloud IAP or some static IP solution one day, but for
+    # now I need to access my TEE applications from my home network.
+    #
+    # (HIGH): Instance has a public IP allocated.
+    # trivy:ignore:AVD-GCP-0031
+    access_config {
+      # We must explicitly create an access_config otherwise we will only
+      # be assigned a private IP. By leaving it empty, GCP should automatically
+      # assign us a public IP.
+    }
   }
 
   # (LOW): Instance disk encryption does not use a customer managed key.
@@ -85,6 +108,10 @@ resource "google_compute_instance" "bcl_sev_snp" {
     user-data = base64encode(templatefile("${path.module}/setup.sh", {
       container_image = var.container_image
     }))
+
+    # Note: Deploying containers to confidential VMs with gce-container-declaration
+    # is deprecated and will be removed in 2027. At some point, you will need
+    # to figure out how to deploy the container via the setup.sh script.
     gce-container-declaration = jsonencode({
       spec = {
         containers = [
@@ -113,36 +140,6 @@ resource "google_compute_instance" "bcl_sev_snp" {
       }
     })
   }
-
-  # Specify the network to use. Our firewall rules should also be attached to
-  # this network.
-  network_interface {
-    network = local.network
-
-    # Maybe I'll look into Cloud IAP or some static IP solution one day, but for
-    # now I need to access my TEE applications from my home network.
-    #
-    # (HIGH): Instance has a public IP allocated.
-    # trivy:ignore:AVD-GCP-0031
-    access_config {
-      # We must explicitly create an access_config otherwise we will only
-      # be assigned a private IP. By leaving it empty, GCP should automatically
-      # assign us a public IP.
-    }
-  }
-
-  # Attach the firewall_rules tag so that the instance inherits our firewall
-  # rules defined below
-  tags = [local.firewall_rules]
-
-  # Labels
-  labels = merge(
-    {
-      "tee-type" = "sev-snp"
-    },
-    var.labels
-  )
-  depends_on = []
 }
 
 # Allow ingress from anywhere on port 22 (typically used for SSH)
