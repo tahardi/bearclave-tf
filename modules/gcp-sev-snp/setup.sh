@@ -18,6 +18,7 @@ EOF
 sudo systemctl restart docker
 
 echo "Mounting SEV-SNP device..."
-sudo mount --bind /dev/sev-guest /dev/sev-guest
+sudo mount --bind /dev/tdx-guest /dev/tdx-guest 2>/dev/null || true
+sudo mount --bind /sys/kernel/config /sys/kernel/config 2>/dev/null || true
 
 echo "=== SEV-SNP setup script complete ==="

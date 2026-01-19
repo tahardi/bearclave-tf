@@ -127,6 +127,10 @@ resource "google_compute_instance" "bcl_sev_snp" {
               {
                 name      = "sev-guest"
                 mountPath = "/dev/sev-guest"
+              },
+              {
+                name      = "config"
+                mountPath = "/sys/kernel/config"
               }
             ]
           }
@@ -136,6 +140,12 @@ resource "google_compute_instance" "bcl_sev_snp" {
             name = "sev-guest"
             hostPath = {
               path = "/dev/sev-guest"
+            }
+          },
+          {
+            name = "config"
+            hostPath = {
+              path = "/sys/kernel/config"
             }
           }
         ]
