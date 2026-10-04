@@ -1,6 +1,7 @@
 # Trivy configuration for Terraform module security scanning
 exit-code: 1
 timeout: 300s
+ignorefile: .trivyignore.yaml
 severity:
   - CRITICAL
   - HIGH

@@ -1,3 +1,5 @@
+mock_provider "google" {}
+
 run "configuration_validation" {
   command = plan
 

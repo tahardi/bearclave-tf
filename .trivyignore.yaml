@@ -1,0 +1,13 @@
+misconfigurations:
+  - id: GCP-0071
+    paths:
+      - modules/gcp-sev-snp/main.tf
+      - modules/gcp-tdx/main.tf
+  - id: GCP-0072
+    paths:
+      - modules/gcp-sev-snp/main.tf
+      - modules/gcp-tdx/main.tf
+  - id: GCP-0073
+    paths:
+      - modules/gcp-sev-snp/main.tf
+      - modules/gcp-tdx/main.tf

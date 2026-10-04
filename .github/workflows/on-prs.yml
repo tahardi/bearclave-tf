@@ -24,6 +24,23 @@ jobs:
       - name: Run Formatter
         run: make fmt-check
 
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Read Terraform version
+        run: echo "TF_VERSION=$(cat .terraform-version)" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Run Unit Tests
+        run: make test-unit
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -46,9 +63,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Trivy
-        uses: aquasecurity/setup-trivy@v0.2.4
+        uses: aquasecurity/setup-trivy@v0.3.1
         with:
-          version: v0.68.2
+          version: v0.69.3
 
       - name: Run Trivy vulnerability scanner
         run: make sec-check
