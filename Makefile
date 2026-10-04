@@ -67,12 +67,12 @@ test-unit: \
 
 .PHONY: test-unit-aws-nitro
 test-unit-aws-nitro:
-	@cd ./modules/aws-nitro-enclaves && terraform test
+	@cd ./modules/aws-nitro-enclaves && terraform init -backend=false -input=false > /dev/null && terraform test
 
 .PHONY: test-unit-gcp-sev-snp
 test-unit-gcp-sev-snp:
-	@cd ./modules/gcp-sev-snp && terraform test
+	@cd ./modules/gcp-sev-snp && terraform init -backend=false -input=false > /dev/null && terraform test
 
 .PHONY: test-unit-gcp-tdx
 test-unit-gcp-tdx:
-	@cd ./modules/gcp-tdx && terraform test
+	@cd ./modules/gcp-tdx && terraform init -backend=false -input=false > /dev/null && terraform test

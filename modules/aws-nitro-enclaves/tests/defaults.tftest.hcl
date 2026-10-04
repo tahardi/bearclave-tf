@@ -1,3 +1,5 @@
+mock_provider "aws" {}
+
 run "configuration_validation" {
   command = plan
 
