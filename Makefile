@@ -10,7 +10,7 @@ SHELL := bash
 pre-pr: fmt lint sec-check-quiet docs test-unit
 
 .PHONY: docs
-docs: docs-aws-nitro docs-gcp-sev-snp docs-gcp-tdx
+docs: docs-aws-nitro docs-gcp-sev-snp docs-gcp-tdx docs-bootstrap-gcp docs-bootstrap-aws
 
 .PHONY: docs-aws-nitro
 docs-aws-nitro:
@@ -28,6 +28,18 @@ docs-gcp-sev-snp:
 docs-gcp-tdx:
 	@terraform-docs markdown table \
 		./modules/gcp-tdx \
+		--output-file README.md
+
+.PHONY: docs-bootstrap-gcp
+docs-bootstrap-gcp:
+	@terraform-docs markdown table \
+		./bootstrap/gcp \
+		--output-file README.md
+
+.PHONY: docs-bootstrap-aws
+docs-bootstrap-aws:
+	@terraform-docs markdown table \
+		./bootstrap/aws \
 		--output-file README.md
 
 .PHONY: fmt
@@ -63,7 +75,9 @@ sec-check-quiet:
 test-unit: \
 	test-unit-aws-nitro \
 	test-unit-gcp-sev-snp \
-	test-unit-gcp-tdx
+	test-unit-gcp-tdx \
+	test-unit-bootstrap-gcp \
+	test-unit-bootstrap-aws
 
 .PHONY: test-unit-aws-nitro
 test-unit-aws-nitro:
@@ -76,3 +90,11 @@ test-unit-gcp-sev-snp:
 .PHONY: test-unit-gcp-tdx
 test-unit-gcp-tdx:
 	@cd ./modules/gcp-tdx && terraform init -backend=false -input=false > /dev/null && terraform test
+
+.PHONY: test-unit-bootstrap-gcp
+test-unit-bootstrap-gcp:
+	@cd ./bootstrap/gcp && terraform init -backend=false -input=false > /dev/null && terraform test
+
+.PHONY: test-unit-bootstrap-aws
+test-unit-bootstrap-aws:
+	@cd ./bootstrap/aws && terraform init -backend=false -input=false > /dev/null && terraform test
