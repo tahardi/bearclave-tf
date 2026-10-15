@@ -1,3 +1,4 @@
+# Versioning is not needed: the bucket holds build artifacts that CI can rebuild and deletes after 7 days.
 # trivy:ignore:AVD-AWS-0090
 resource "aws_s3_bucket" "eif" {
   bucket = var.eif_bucket_name
@@ -11,6 +12,7 @@ resource "aws_s3_bucket_public_access_block" "eif" {
   restrict_public_buckets = true
 }
 
+# AWS-managed AES256 encryption is enough for short-lived build artifacts; a KMS key adds cost and key management.
 # trivy:ignore:AVD-AWS-0132
 resource "aws_s3_bucket_server_side_encryption_configuration" "eif" {
   bucket = aws_s3_bucket.eif.id

@@ -9,7 +9,7 @@ resource "google_artifact_registry_repository" "bearclave" {
     action = "DELETE"
     condition {
       tag_state  = "ANY"
-      older_than = "604800s"
+      older_than = "604800s" # 7 days
     }
   }
 
